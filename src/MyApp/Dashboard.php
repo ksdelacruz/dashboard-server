@@ -23,7 +23,7 @@ class Dashboard implements MessageComponentInterface
 
     public function getJSON($client) {
         $host = $client->WebSocket->request->getHeader('Origin');
-        if(substr("swatqa", $host) == true) $host = "http://www.dewslandslide.com";
+        if(strpos($host, "swatqa") == true) $host = "http://www.dewslandslide.com";
         $json = file_get_contents($host . '/temp/data/PublicAlert.json');
         $data = array(
             'code' => 'getJSONandLastRelease',
