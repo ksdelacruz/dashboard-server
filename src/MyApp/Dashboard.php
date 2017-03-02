@@ -49,6 +49,7 @@ class Dashboard implements MessageComponentInterface
     	echo sprintf('Connection %d sending message "%s" to %d other connection%s' . "\n", $from->resourceId, $msg, $numRecv, $numRecv == 1 ? '' : 's');
 
         $host = $from->WebSocket->request->getHeader('Origin');
+        if(strpos($host, "swatqa") == true) $host = "192.168.1.106";
 
         if($msg == "getOnGoingAndExtended") {
             $ongoing = file_get_contents($host . '/monitoring/getOnGoingAndExtended');
