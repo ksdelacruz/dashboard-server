@@ -34,12 +34,30 @@ class Dashboard implements MessageComponentInterface
         $client->send(json_encode($data));
     }
 
+    public function getNormalAndLockedIssues($client) {
+        $host = $client->WebSocket->request->getHeader('Origin');
+        if(strpos($host, "swatqa") == true) $host = "http://www.dewslandslide.com";
+        $normal = file_get_contents($host . '/issues_and_reminders/getAllNormal');
+        $locked = file_get_contents($host . '/issues_and_reminders/getAllLocked');
+        $archived = file_get_contents($host . '/issues_and_reminders/getAllArchived');
+        $data = array(
+            'code' => 'getNormalAndLockedIssues',
+            'normal' => json_decode($normal),
+            'locked' => json_decode($locked),
+            'archived' => json_decode($archived)
+        );
+
+        return $data;
+    }
+
     public function onOpen(ConnectionInterface $conn) {
     	// Store the new connection to send messages to later
 	    $this->clients->attach($conn);
 
         // Send JSON after connecting
         $this->getJSON($conn);
+        $data = $this->getNormalAndLockedIssues($conn);
+        $conn->send(json_encode($data));
 
 	    echo "New connection! ({$conn->resourceId})\n";
     }
@@ -58,11 +76,16 @@ class Dashboard implements MessageComponentInterface
                 'ongoing' => json_decode($ongoing)
             );
 
+        } elseif ($msg == "getNormalAndLockedIssues") { // FUNCTION FOR ISSUES AND REMINDERS
+            $data = $this->getNormalAndLockedIssues($from);
+        }
+
+        if( isset($data) ) {
             foreach ($this->clients as $client) {
                 $client->send(json_encode($data));
             }
         }
-
+            
     	// foreach ($this->clients as $client) {
 	    //     if ($from !== $client) {
 	    //         // The sender is not the receiver, send to each client connected
