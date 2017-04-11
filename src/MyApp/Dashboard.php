@@ -36,7 +36,7 @@ class Dashboard implements MessageComponentInterface
 
     public function getNormalAndLockedIssues($client) {
         $host = $client->WebSocket->request->getHeader('Origin');
-        if(strpos($host, "swatqa") == true) $host = "http://www.dewslandslide.com";
+        if(strpos($host, "swatqa") == true) $host = "http://192.168.150.165";
         $normal = file_get_contents($host . '/issues_and_reminders/getAllNormal');
         $locked = file_get_contents($host . '/issues_and_reminders/getAllLocked');
         $archived = file_get_contents($host . '/issues_and_reminders/getAllArchived');
