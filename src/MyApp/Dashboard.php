@@ -32,27 +32,26 @@ class Dashboard implements MessageComponentInterface
 
 	public function __construct(Loop $loop) {
 	    $this->clients = new \SplObjectStorage;
-	    echo "Congratulations! the server is now running\n";
+	    $this->writeToLog("Congratulations! the server is now running\n");
 
         date_default_timezone_set("Asia/Manila");
         $loop->addPeriodicTimer(60, function() { // 1-minute loop
             
             $date = date_create();
-            echo date_format($date, '||=> Y-m-d H:i:s ');
-            echo "Looping every 1 minute...\n";
+            $this->writeToLog("||=> Looping every 1 minute...\n");
 
             $hasUpdate = false; // variable that tell if there's a new json data
             // Update json variable ONLY IF there is 1 or more connected client
             if( count($this->clients) >= 1 ) {
                 $hasUpdate = $this->updateJSON();
             } else {
-                echo "No connected client.\n";
+                $this->writeToLog("No connected client.\n");
             }
 
             $alertReleaseSuccess = false;
             if( count($this->authorized_staff) > 0 ) {
                 $str = implode(", ", array_map( function ($v) { return "{$v['staff_name']}"; }, array_values($this->authorized_staff)));
-                echo "Authorized personnel connected: " . $str . "\n";
+                $this->writeToLog("Authorized personnel connected: " . $str . "\n");
 
                 //PUT HERE AUTOMATION OF RELEASE SHIT
                 //CHECK TIME HERE IF TIME OF RELEASE AND STUFF
@@ -60,23 +59,23 @@ class Dashboard implements MessageComponentInterface
                 if( $this->isAutomatedAlertRelease['switch'] && (int) date_format($date, 'H') % 4 == 3 && (int) date_format($date, 'i') == 55 )
                 {
                     if( $this->automateALertRelease() ) {
-                        echo "Automated alert release for " . date_format($date, 'H:00') . " successful; activated by {$this->isAutomatedAlertRelease['staff_name']}\n";
+                        $this->writeToLog("Automated alert release for " . date_format($date, 'H:00') . " successful; activated by {$this->isAutomatedAlertRelease['staff_name']}\n");
                         $alertReleaseSuccess = true;
                     }
-                    else echo "ERROR: Problem automated releasing alerts...\n";
+                    else $this->writeToLog("ERROR: Problem automated releasing alerts...\n");
                 }
 
                 // $this->isAutomatedBulletinSending = array("switch" => true, "staff" => "Kevin Dhale");
                 if( $this->isAutomatedBulletinSending['switch'] && (int) date_format($date, 'H') % 4 == 4 && (int) date_format($date, 'i') == 05 )
                 {
                     if( $this->automateBulletinRelease($date) ) {
-                        echo "Automated bulletin sending for " . date_format($date, 'H:00') . " successful; activated by {$this->isAutomatedBulletinSending['staff_name']}\n";
+                        $this->writeToLog("Automated bulletin sending for " . date_format($date, 'H:00') . " successful; activated by {$this->isAutomatedBulletinSending['staff_name']}\n");
                         $alertReleaseSuccess = true;
                     }
-                    else echo "ERROR: Problem automated bulletin sending...\n";
+                    else $this->writeToLog("ERROR: Problem automated bulletin sending...\n");
                 }
 
-            } else echo "No authorized personnel connected\n";
+            } else $this->writeToLog("No authorized personnel connected\n");
 
             // $date = date_create("2017-04-24 20:00:00");
             // $this->automateBulletinRelease($date);
@@ -114,12 +113,12 @@ class Dashboard implements MessageComponentInterface
         $data = $this->getNormalAndLockedIssues($conn);
         $conn->send($data);
 
-	    echo "New connection! ({$conn->resourceId})\n";
+	    $this->writeToLog("New connection! ({$conn->resourceId})\n");
     }
 
     public function onMessage(ConnectionInterface $from, $msg) {
     	$numRecv = count($this->clients) - 1;
-    	echo sprintf('Connection %d sending message "%s" to %d other connection%s' . "\n", $from->resourceId, $msg, $numRecv, $numRecv == 1 ? '' : 's');
+    	$this->writeToLog(sprintf('Connection %d sending message "%s" to %d other connection%s' . "\n", $from->resourceId, $msg, $numRecv, $numRecv == 1 ? '' : 's'));
 
         $msg = json_decode($msg);
         $code = $msg->code;
@@ -154,11 +153,11 @@ class Dashboard implements MessageComponentInterface
 
         $this->deleteAuthorizedID($conn->resourceId);
 
-    	echo "Connection {$conn->resourceId} has disconnected\n";
+    	$this->writeToLog("Connection {$conn->resourceId} has disconnected\n");
     }
 
     public function onError(ConnectionInterface $conn, \Exception $e) {
-    	echo "An error has occurred: {$e->getMessage()}\n";
+    	$this->writeToLog("An error has occurred: {$e->getMessage()}\n");
 
     	$conn->close();
     }
@@ -170,12 +169,28 @@ class Dashboard implements MessageComponentInterface
      * 
      ***********************/
 
+    public function writeToLog($str)
+    {
+        date_default_timezone_set("Asia/Manila");
+        $date = date_create();
+        $date_now = date_format($date, 'Y-m-d H:i:s ');
+        echo $date_now . $str;
+
+        if(strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') $path = "C:/xampp/dashboard-server/logs/";
+        else $path = "/var/www/dashboard-server/logs/";
+
+        if ( !is_dir($path) ) { mkdir($path, 0777, true); }
+
+        $file = $path . date_format($date, 'Y-m-d') . ".txt";
+        file_put_contents($file, "$date_now\t$str\r\n", FILE_APPEND | LOCK_EX);
+    }
+
     public function saveAuthorizedID($name, $conn, $staff_id)
     {
         if( in_array($name, ["Kevin Dhale", "Prado Arturo", "John", "Ivy Jean", "Earl Anthony", "Ric"]) )
         {
             array_push($this->authorized_staff, array( "staff_name" => $name, "conn" => $conn, "staff_id" => $staff_id ));
-            echo "Authorized personnel \"$name\" is online\n";
+            $this->writeToLog("Authorized personnel \"$name\" is online\n");
             return true;
         } else return false;
     }
@@ -192,14 +207,14 @@ class Dashboard implements MessageComponentInterface
 
         if( !is_null($isAuthorized) )
         {
-            echo "Authorized personnel \"{$this->authorized_staff[$i]['staff_name']}\" has logged off\n";
+            $this->writeToLog("Authorized personnel \"{$this->authorized_staff[$i]['staff_name']}\" has logged off\n");
             array_splice($this->authorized_staff, $isAuthorized, 1);
         }
 
         if( count($this->authorized_staff) == 0 ) {
             $this->isAutomatedAlertRelease['switch'] = false;
             $this->isAutomatedBulletinSending['switch'] = false;
-            echo "All authorized staff has logged off... Clearing permissions on alert and bulletin automation...\n";
+            $this->writeToLog("All authorized staff has logged off... Clearing permissions on alert and bulletin automation...\n");
         }
     }
 
@@ -220,10 +235,10 @@ class Dashboard implements MessageComponentInterface
             $this->isAutomatedAlertRelease['switch'] = true;
             $this->isAutomatedAlertRelease['staff_id'] = $staff_id;
             $this->isAutomatedAlertRelease['staff_name'] = $staff_name;
-            echo "Automated Alert Release has been ACTIVATED by $staff_name\n";
+            $this->writeToLog("Automated Alert Release has been ACTIVATED by $staff_name\n");
         } else {
             $this->isAutomatedAlertRelease['switch'] = false;
-            echo "Automated Alert Release has been DEACTIVATED by $staff_name\n";
+            $this->writeToLog("Automated Alert Release has been DEACTIVATED by $staff_name\n");
         }
 
         $data = $this->showAutomationMenu();
@@ -238,10 +253,10 @@ class Dashboard implements MessageComponentInterface
             $this->isAutomatedBulletinSending['switch'] = true;
             $this->isAutomatedBulletinSending['staff_id'] = $staff_id;
             $this->isAutomatedBulletinSending['staff_name'] = $staff_name;
-            echo "Automated Bulletin Sending has been ACTIVATED by $staff_name\n";
+            $this->writeToLog("Automated Bulletin Sending has been ACTIVATED by $staff_name\n");
         } else {
             $this->isAutomatedBulletinSending['switch'] = false;
-            echo "Automated Bulletin Sending has been DEACTIVATED by $staff_name\n";
+            $this->writeToLog("Automated Bulletin Sending has been DEACTIVATED by $staff_name\n");
         }
 
         $data = $this->showAutomationMenu();
@@ -272,7 +287,7 @@ class Dashboard implements MessageComponentInterface
             return true;
         }
         else { 
-            echo "No new data from alert JSON\n";
+            $this->writeToLog("No new data from alert JSON\n");
             return false;
         }
     }
@@ -307,7 +322,7 @@ class Dashboard implements MessageComponentInterface
 
         $directory = "temp/alert_processing/";
 
-        if ( !is_dir($path) ) { mkdir($path, 0777, true); }
+        if ( !is_dir($path . $directory) ) { mkdir($path . $directory, 0777, true); }
 
         file_put_contents($path . $directory . "public_alert.json", $this->json);
         file_put_contents($path . $directory . "alerts_from_db.json", json_encode($this->alerts));
@@ -342,7 +357,7 @@ class Dashboard implements MessageComponentInterface
         }  
         else if( !is_null($output) )
         {
-            echo implode("\n", $output) . "\n";
+            $this->writeToLog(implode("\n", $output) . "\n");
             return false;
         }    
     }
@@ -396,7 +411,7 @@ class Dashboard implements MessageComponentInterface
         }  
         else if( !is_null($output) )
         {
-            echo implode("\n", $output) . "\n";
+            $this->writeToLog(implode("\n", $output) . "\n");
             return false;
         }      
     }
