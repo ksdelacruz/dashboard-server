@@ -187,7 +187,7 @@ class Dashboard implements MessageComponentInterface
 
     public function saveAuthorizedID($name, $conn, $staff_id)
     {
-        if( in_array($name, ["Kevin Dhale", "Prado Arturo", "John", "Ivy Jean", "Earl Anthony", "Ric"]) )
+        if( in_array($name, ["Kevin Dhale", "Prado Arturo", "John", "Ivy Jean", "Earl Anthony", "Ric", "DYNASLOPE-SWAT"]) )
         {
             array_push($this->authorized_staff, array( "staff_name" => $name, "conn" => $conn, "staff_id" => $staff_id ));
             $this->writeToLog("Authorized personnel \"$name\" is online\n");
