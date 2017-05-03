@@ -49,7 +49,7 @@ class Dashboard implements MessageComponentInterface
             }
 
             $alertReleaseSuccess = false;
-            if( count($this->authorized_staff) > 0 ) {
+            /*if( count($this->authorized_staff) > 0 ) {
                 $str = implode(", ", array_map( function ($v) { return "{$v['staff_name']}"; }, array_values($this->authorized_staff)));
                 $this->writeToLog("Authorized personnel connected: " . $str . "\n");
 
@@ -77,8 +77,8 @@ class Dashboard implements MessageComponentInterface
 
             } else $this->writeToLog("No authorized personnel connected\n");
 
-            // $date = date_create("2017-04-24 20:00:00");
-            // $this->automateBulletinRelease($date);
+            $date = date_create("2017-04-24 20:00:00");
+            $this->automateBulletinRelease($date);*/
 
             if($hasUpdate || $alertReleaseSuccess) {
                 $data["alerts"] = $this->getAlertsFromDatabase();
@@ -151,7 +151,7 @@ class Dashboard implements MessageComponentInterface
     	// The connection is closed, remove it, as we can no longer send it messages
     	$this->clients->detach($conn);
 
-        $this->deleteAuthorizedID($conn->resourceId);
+        /*$this->deleteAuthorizedID($conn->resourceId);*/
 
     	$this->writeToLog("Connection {$conn->resourceId} has disconnected\n");
     }
