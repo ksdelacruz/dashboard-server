@@ -92,10 +92,10 @@ class Dashboard implements MessageComponentInterface
 
     public function onOpen(ConnectionInterface $conn) {
     	// Store the new connection to send messages to later
-	    $this->clients->attach($conn);
+		$this->clients->attach($conn);
 
         $this->host = $conn->WebSocket->request->getHeader('Origin');
-
+		
         $data = [];
 
         if( count($this->clients) == 1 ) {
@@ -114,6 +114,7 @@ class Dashboard implements MessageComponentInterface
         $conn->send($data);
 
 	    $this->writeToLog("New connection! ({$conn->resourceId})\n");
+		$this->writeToLog("Host: ({$this->host})\n");
     }
 
     public function onMessage(ConnectionInterface $from, $msg) {
