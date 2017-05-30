@@ -419,6 +419,9 @@ class Dashboard implements MessageComponentInterface
     }
 
     public function getNormalAndLockedIssues() {
+        
+        $host = $this->host;
+
         $normal = file_get_contents($host . '/issues_and_reminders/getAllNormal');
         $locked = file_get_contents($host . '/issues_and_reminders/getAllLocked');
         $archived = file_get_contents($host . '/issues_and_reminders/getAllArchived');
