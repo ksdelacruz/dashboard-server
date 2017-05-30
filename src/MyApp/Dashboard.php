@@ -95,6 +95,7 @@ class Dashboard implements MessageComponentInterface
 	    $this->clients->attach($conn);
 
         $this->host = $conn->WebSocket->request->getHeader('Origin');
+	    if(strpos($this->host, "192.168.150.165") == true) $this->host = "http://swatqa";
 
         $data = [];
 
@@ -114,6 +115,7 @@ class Dashboard implements MessageComponentInterface
         $conn->send($data);
 
 	    $this->writeToLog("New connection! ({$conn->resourceId})\n");
+	    $this->writeToLog("Host: ({$this->host})\n");
     }
 
     public function onMessage(ConnectionInterface $from, $msg) {
@@ -295,7 +297,7 @@ class Dashboard implements MessageComponentInterface
     public function getAlertsFromDatabase( $getDataFromCache = false )
     {
         if( !$getDataFromCache ) {
-            if(strpos($this->host, "swatqa") == true) $this->host = "http://192.168.150.165";
+            if(strpos($this->host, "swatqa") == true) $host = "http://192.168.150.165";
             else $host = $this->host;
 
             $alerts = json_decode( file_get_contents($host . '/monitoring/getOnGoingAndExtended') );
@@ -418,8 +420,7 @@ class Dashboard implements MessageComponentInterface
 
     public function getNormalAndLockedIssues() {
         
-        if(strpos($this->host, "swatqa") == true) $host = "http://www.dewslandslide.com";
-        else $host = $this->host;
+        $host = $this->host;
 
         $normal = file_get_contents($host . '/issues_and_reminders/getAllNormal');
         $locked = file_get_contents($host . '/issues_and_reminders/getAllLocked');
