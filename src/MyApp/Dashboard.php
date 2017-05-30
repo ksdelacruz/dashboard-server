@@ -419,10 +419,6 @@ class Dashboard implements MessageComponentInterface
     }
 
     public function getNormalAndLockedIssues() {
-        
-        if(strpos($this->host, "swatqa") == true) $host = "http://www.dewslandslide.com";
-        else $host = $this->host;
-
         $normal = file_get_contents($host . '/issues_and_reminders/getAllNormal');
         $locked = file_get_contents($host . '/issues_and_reminders/getAllLocked');
         $archived = file_get_contents($host . '/issues_and_reminders/getAllArchived');
