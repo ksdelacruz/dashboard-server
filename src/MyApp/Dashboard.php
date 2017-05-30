@@ -95,7 +95,7 @@ class Dashboard implements MessageComponentInterface
 		$this->clients->attach($conn);
 
         $this->host = $conn->WebSocket->request->getHeader('Origin');
-	if(strpos($this->host, "192.168.150.165") == true) $this->host = "http://swatqa";
+        if(strpos($this->host, "192.168.150.165") == true) $this->host = "http://swatqa";
 		
         $data = [];
 
@@ -297,7 +297,7 @@ class Dashboard implements MessageComponentInterface
     public function getAlertsFromDatabase( $getDataFromCache = false )
     {
         if( !$getDataFromCache ) {
-            if(strpos($this->host, "swatqa") == true) $this->host = "http://192.168.150.165";
+            if(strpos($this->host, "swatqa") == true) $host = "http://192.168.150.165";
             else $host = $this->host;
 
             $alerts = json_decode( file_get_contents($host . '/monitoring/getOnGoingAndExtended') );
