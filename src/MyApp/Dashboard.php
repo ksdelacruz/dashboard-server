@@ -95,6 +95,7 @@ class Dashboard implements MessageComponentInterface
 		$this->clients->attach($conn);
 
         $this->host = $conn->WebSocket->request->getHeader('Origin');
+	if(strpos($this->host, "192.168.150.165") == true) $this->host = "http://swatqa";
 		
         $data = [];
 
