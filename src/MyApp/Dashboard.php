@@ -49,7 +49,7 @@ class Dashboard implements MessageComponentInterface
             }
 
             $alertReleaseSuccess = false;
-            if( count($this->authorized_staff) > 0 ) {
+            /*if( count($this->authorized_staff) > 0 ) {
                 $str = implode(", ", array_map( function ($v) { return "{$v['staff_name']}"; }, array_values($this->authorized_staff)));
                 $this->writeToLog("Authorized personnel connected: " . $str . "\n");
 
@@ -77,8 +77,8 @@ class Dashboard implements MessageComponentInterface
 
             } else $this->writeToLog("No authorized personnel connected\n");
 
-            // $date = date_create("2017-04-24 20:00:00");
-            // $this->automateBulletinRelease($date);
+            $date = date_create("2017-04-24 20:00:00");
+            $this->automateBulletinRelease($date);*/
 
             if($hasUpdate || $alertReleaseSuccess) {
                 $data["alerts"] = $this->getAlertsFromDatabase();
@@ -92,10 +92,11 @@ class Dashboard implements MessageComponentInterface
 
     public function onOpen(ConnectionInterface $conn) {
     	// Store the new connection to send messages to later
-	    $this->clients->attach($conn);
+		$this->clients->attach($conn);
 
         $this->host = $conn->WebSocket->request->getHeader('Origin');
-
+        if(strpos($this->host, "192.168.150.165") == true) $this->host = "http://swatqa";
+		
         $data = [];
 
         if( count($this->clients) == 1 ) {
@@ -114,6 +115,7 @@ class Dashboard implements MessageComponentInterface
         $conn->send($data);
 
 	    $this->writeToLog("New connection! ({$conn->resourceId})\n");
+		$this->writeToLog("Host: ({$this->host})\n");
     }
 
     public function onMessage(ConnectionInterface $from, $msg) {
@@ -151,7 +153,7 @@ class Dashboard implements MessageComponentInterface
     	// The connection is closed, remove it, as we can no longer send it messages
     	$this->clients->detach($conn);
 
-        $this->deleteAuthorizedID($conn->resourceId);
+        /*$this->deleteAuthorizedID($conn->resourceId);*/
 
     	$this->writeToLog("Connection {$conn->resourceId} has disconnected\n");
     }
@@ -295,7 +297,7 @@ class Dashboard implements MessageComponentInterface
     public function getAlertsFromDatabase( $getDataFromCache = false )
     {
         if( !$getDataFromCache ) {
-            if(strpos($this->host, "swatqa") == true) $this->host = "http://192.168.150.165";
+            if(strpos($this->host, "swatqa") == true) $host = "http://192.168.150.165";
             else $host = $this->host;
 
             $alerts = json_decode( file_get_contents($host . '/monitoring/getOnGoingAndExtended') );
@@ -418,8 +420,7 @@ class Dashboard implements MessageComponentInterface
 
     public function getNormalAndLockedIssues() {
         
-        if(strpos($this->host, "swatqa") == true) $host = "http://www.dewslandslide.com";
-        else $host = $this->host;
+        $host = $this->host;
 
         $normal = file_get_contents($host . '/issues_and_reminders/getAllNormal');
         $locked = file_get_contents($host . '/issues_and_reminders/getAllLocked');
