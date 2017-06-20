@@ -8,6 +8,7 @@ class Dashboard implements MessageComponentInterface
 {
 	protected $clients;
     private $authorized_staff = [];
+    private $onAccomplishment = [];
     private $host = null; // Sets the host
     
     // Switch for automated sending of alert release on web
@@ -44,6 +45,13 @@ class Dashboard implements MessageComponentInterface
             // Update json variable ONLY IF there is 1 or more connected client
             if( count($this->clients) >= 1 ) {
                 $hasUpdate = $this->updateJSON();
+
+                if( (int) date_format($date, 'H') % 4 == 2 && (int) date_format($date, 'i') == 30 ) {
+                    if( count($this->onAccomplishment) == 0 ) {
+                        $this->deleteTemporaryChartFiles();
+                    }
+                }
+
             } else {
                 $this->writeToLog("No connected client.\n");
             }
@@ -96,23 +104,38 @@ class Dashboard implements MessageComponentInterface
 
         $this->host = $conn->WebSocket->request->getHeader('Origin');
         if(strpos($this->host, "192.168.150.165") == true) $this->host = "http://swatqa";
-		
+
         $data = [];
 
-        if( count($this->clients) == 1 ) {
-            $this->updateJSON();
-            $data["alerts"] = $this->getAlertsFromDatabase();
-        } else {
-            $data["alerts"] = $this->getAlertsFromDatabase(true);
+        $path = $conn->WebSocket->request->getPath();
+
+        if( $path == "/accomplishment" ) {
+            $this->writeToLog("PATH: $path\n");
+            // Send connection ID
+            // $data = array(
+            //     "code" => "sendConnectionID",
+            //     "connection_id" => $conn->resourceId
+            // );
+            // $conn->send(json_encode($data));
+            
+            array_push($this->onAccomplishment, $conn->resourceId);
         }
+        else {
+            if( count($this->clients) == 1 ) {
+                $this->updateJSON();
+                $data["alerts"] = $this->getAlertsFromDatabase();
+            } else {
+                $data["alerts"] = $this->getAlertsFromDatabase(true);
+            }
 
-        $data["processed_alerts"] = $this->processAlerts();
+            $data["processed_alerts"] = $this->processAlerts();
 
-        $conn->send($data["alerts"]);
-        $conn->send($data["processed_alerts"]);
+            $conn->send($data["alerts"]);
+            $conn->send($data["processed_alerts"]);
 
-        $data = $this->getNormalAndLockedIssues($conn);
-        $conn->send($data);
+            $data = $this->getNormalAndLockedIssues($conn);
+            $conn->send($data);
+        }
 
 	    $this->writeToLog("New connection! ({$conn->resourceId})\n");
 		$this->writeToLog("Host: ({$this->host})\n");
@@ -154,6 +177,16 @@ class Dashboard implements MessageComponentInterface
     	$this->clients->detach($conn);
 
         /*$this->deleteAuthorizedID($conn->resourceId);*/
+
+        $search = array_search($conn->resourceId, $this->onAccomplishment);
+        if ( $search !== FALSE ) {
+            array_splice($this->onAccomplishment, $search, 1);
+        }
+
+        /*$path = $conn->WebSocket->request->getPath();
+        if( $path == "/accomplishment" ) {
+            $this->deleteTemporaryChartFiles($conn->resourceId);
+        }*/
 
     	$this->writeToLog("Connection {$conn->resourceId} has disconnected\n");
     }
@@ -270,7 +303,10 @@ class Dashboard implements MessageComponentInterface
     public function sendToAll($payload, $from = null)
     {
         foreach ($this->clients as $client) {
-            if ($from !== $client) {
+            // Check path if not from accomplishment server
+            $path = $client->WebSocket->request->getPath();
+
+            if ($from !== $client && $path != "/accomplishment" ) {
                 // The sender is not the receiver, send to each client connected
                 $client->send($payload);
             }
@@ -433,6 +469,13 @@ class Dashboard implements MessageComponentInterface
         );
 
         return json_encode($data);
+    }
+
+    public function deleteTemporaryChartFiles($id = null) {
+        
+        $host = $this->host;
+        $result = file_get_contents($host . '/chart_export/deleteTemporaryChartFiles/' . $id);
+        $this->writeToLog($result . "\n");
     }
 
 }
