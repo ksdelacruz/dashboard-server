@@ -82,7 +82,6 @@ class Dashboard implements MessageComponentInterface
                     }
                     else $this->writeToLog("ERROR: Problem automated bulletin sending...\n");
                 }
-
             } else $this->writeToLog("No authorized personnel connected\n");
 
             $date = date_create("2017-04-24 20:00:00");
