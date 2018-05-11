@@ -103,7 +103,7 @@ class Dashboard implements MessageComponentInterface
 		$this->clients->attach($conn);
 
         $this->host = $conn->WebSocket->request->getHeader('Origin');
-        if(strpos($this->host, "192.168.150.165") == true) $this->host = "http://swatqa";
+        if(strpos($this->host, "192.168.150.70") == true) $this->host = "http://dewslqa.com";
 
         $data = [];
 
@@ -204,6 +204,33 @@ class Dashboard implements MessageComponentInterface
      * 
      ***********************/
 
+    public function getPath($type)
+    {
+        $host = $this->host;
+        if(strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') {
+            $initial =  "C:/xampp/";
+            switch ($type) {
+                case "logs":
+                    $path = $initial . "dashboard-server/logs"; break;
+                case "htdocs":
+                    $path = $initial . "htdocs/"; break;
+            }
+        } else {
+            $initial =  "/var/www/";
+            if (strpos($this->host, "dewslqa") == true) {
+                $initial = $initial . "dewslqa.com/";
+            }
+            switch ($type) {
+                case "logs":
+                    $path = $initial . "dashboard-server/logs"; break;
+                case "htdocs":
+                    $path = $initial . "html/"; break;
+            }
+        }
+
+        return $path;
+    }
+
     public function writeToLog($str)
     {
         date_default_timezone_set("Asia/Manila");
@@ -211,8 +238,7 @@ class Dashboard implements MessageComponentInterface
         $date_now = date_format($date, 'Y-m-d H:i:s ');
         echo $date_now . $str;
 
-        if(strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') $path = "C:/xampp/dashboard-server/logs/";
-        else $path = "/var/www/dashboard-server/logs/";
+        $path = $this->getPath("logs");
 
         if ( !is_dir($path) ) { mkdir($path, 0777, true); }
 
@@ -315,7 +341,7 @@ class Dashboard implements MessageComponentInterface
 
     public function updateJSON() {
 
-        if(strpos($this->host, "swatqa") == true) $host = "http://www.dewslandslide.com";
+        if(strpos($this->host, "dewslqa.com") == true) $host = "http://www.dewslandslide.com";
         else $host = $this->host;
 
         $temp_json = file_get_contents($host . '/temp/data/PublicAlert.json');
@@ -333,8 +359,7 @@ class Dashboard implements MessageComponentInterface
     public function getAlertsFromDatabase( $getDataFromCache = false )
     {
         if( !$getDataFromCache ) {
-            if(strpos($this->host, "swatqa") == true) $host = "http://192.168.150.165";
-            else $host = $this->host;
+            $host = $this->host;
 
             $alerts = json_decode( file_get_contents($host . '/monitoring/getOnGoingAndExtended') );
 
@@ -355,8 +380,7 @@ class Dashboard implements MessageComponentInterface
 
     public function processAlerts()
     {
-        if(strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') $path = "C:/xampp/htdocs/";
-        else $path = "/var/www/html/";
+        $path = $this->getPath("htdocs");
 
         $directory = "temp/alert_processing/";
 
@@ -380,8 +404,7 @@ class Dashboard implements MessageComponentInterface
 
     public function automateALertRelease()
     {
-        if(strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') $path = "C:/xampp/htdocs/";
-        else $path = "/var/www/html/";
+        $path = $this->getPath("htdocs");
 
         $directory = "temp/alert_processing/";
 
@@ -406,8 +429,7 @@ class Dashboard implements MessageComponentInterface
         $temp_date = str_replace("12AM", "12MN", $temp_date);
         $temp_date = str_replace("12PM", "12NN", $temp_date);
 
-        if(strtoupper(substr(PHP_OS, 0, 3)) === 'WIN') $path = "C:/xampp/htdocs/";
-        else $path = "/var/www/html/";
+        $path = $this->getPath("htdocs");
 
         $directory = "temp/alert_processing/";
 
