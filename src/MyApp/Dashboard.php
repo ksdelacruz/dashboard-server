@@ -340,8 +340,8 @@ class Dashboard implements MessageComponentInterface
 
     public function updateJSON() {
 
+        $host = $this->host;
         if(strpos($this->host, "dewslqa.com") == true) $host = "http://www.dewslandslide.com";
-        else $host = $this->host;
 
         $temp_json = file_get_contents($host . '/temp/data/PublicAlert.json');
 
