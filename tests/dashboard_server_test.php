@@ -1,28 +1,33 @@
 <?php
-require '../src/MyApp/Dashboard.php';
-require dirname(__DIR__) . 'vendor/autoload.php';
+require_once '/var/www/dashboard-server/src/MyApp/Dashboard.php';
+use MyApp\Dashboard;
 
+use PHPUnit\Framework\TestCase;
 class Dashboard_server_test extends PHPUnit_Framework_TestCase {
 
-	private $dashboard_server;
-
-	public function setUp() {
+	public function __construct() {
 		$this->dashboard_server = new Dashboard();
 	}
-	
-	public function tearDown() {
-		$this->dashboard_server = NULL;
-		//Clean db.
-	}
 
-	public function testAddNum() {
-		$result = $this->dashboard_server->addNum(1,2);
-		$this->assertEquals(3, $result);
-	}
+	// public function testWriteToLog() {
+	// 	// ConnectionInterface $conn = new ConnectionInterface();
+ //        date_default_timezone_set("Asia/Manila");
+ //        $date = date_create();
+ //        $date_now = date_format($date, 'Y-m-d H:i:s ');
+
+	// 	$expected_result = "$date_now\tHello World!\r\n";
+	// 	$actual_result = $this->dashboard_server->writeToLog("Hello World!");
+	// 	$this->assertEquals(true, $result);
+	// }
 
 	public function testSaveAuthorizedID() {
-		ConnectionInterface $conn = new ConnectionInterface();
-		$result = $this->dashboard_server->saveAuthorizedID("Kevin Dhale", $conn, 37);
+		// ConnectionInterface $conn = new ConnectionInterface();
+        date_default_timezone_set("Asia/Manila");
+        $date = date_create();
+        $date_now = date_format($date, 'Y-m-d H:i:s ');
+
+		$expected_result = "Hello World!";
+		$actual_result = $this->dashboard_server->saveAuthorizedID("Hello World!",'101','56');
 		$this->assertEquals(true, $result);
 	}
 
