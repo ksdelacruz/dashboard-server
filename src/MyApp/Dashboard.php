@@ -343,7 +343,7 @@ class Dashboard implements MessageComponentInterface
         if(strpos($this->host, "dewslqa.com") == true) $host = "http://www.dewslandslide.com";
         else $host = $this->host;
 
-        $temp_json = file_get_contents($host . '/temp/data/PublicAlert.json');
+        $temp_json = file_get_contents($host . '/temp/data/PublicAlertRefDB.json');
 
         if( $this->json !== $temp_json ) {
             $this->json = $temp_json;
