@@ -90,8 +90,10 @@ class Dashboard implements MessageComponentInterface
             if($hasUpdate || $alertReleaseSuccess) {
                 $data["alerts"] = $this->getAlertsFromDatabase();
                 $data["processed_alerts"] = $this->processAlerts();
+                $alert_json = $this->prepareSendingJSON();
                 $this->sendToAll($data["alerts"]);
                 $this->sendToAll($data["processed_alerts"]);
+                $this->sendToAll($alert_json);
             }
 
         });
@@ -128,9 +130,11 @@ class Dashboard implements MessageComponentInterface
             }
 
             $data["processed_alerts"] = $this->processAlerts();
+            $alert_json = $this->prepareSendingJSON();
 
             $conn->send($data["alerts"]);
             $conn->send($data["processed_alerts"]);
+            $conn->send($alert_json);
 
             $data = $this->getNormalAndLockedIssues($conn);
             $conn->send($data);
@@ -353,6 +357,11 @@ class Dashboard implements MessageComponentInterface
             $this->writeToLog("No new data from alert JSON\n");
             return false;
         }
+    }
+
+    public function prepareSendingJSON() {
+        $data = array("code" => "updateGeneratedAlerts", "generated_alerts" => $this->json);
+        return json_encode($data);
     }
 
     public function getAlertsFromDatabase( $getDataFromCache = false )
