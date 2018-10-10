@@ -103,6 +103,8 @@ class Dashboard implements MessageComponentInterface
 
         $this->host = $conn->WebSocket->request->getHeader('Origin');
         if(strpos($this->host, "192.168.150.70") == true) $this->host = "http://dewslqa.com";
+        else if(strpos($this->host, ":1088") == true) $this->host = "http://192.168.150.80";
+        else if(strpos($this->host, ":1080") == true) $this->host = "http://192.168.150.72";
 
         $data = [];
 
