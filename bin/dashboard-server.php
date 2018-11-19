@@ -20,7 +20,7 @@ require dirname(__DIR__) . '/vendor/autoload.php';
 
 $loop = LoopFactory::create();
 $socket = new Reactor($loop);
-$socket->listen(5070, '0.0.0.0');
+$socket->listen(5170, '0.0.0.0');
 $server = new IoServer(new HttpServer(new WsServer(new Dashboard($loop))), $socket, $loop);
 $server->run();
 
