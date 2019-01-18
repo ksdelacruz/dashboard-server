@@ -35,7 +35,7 @@ class Dashboard implements MessageComponentInterface
 	public function __construct(Loop $loop) {
 	    $this->clients = new \SplObjectStorage;
 	    $this->writeToLog("Congratulations! the server is now running\n");
-
+    
         date_default_timezone_set("Asia/Manila");
         $loop->addPeriodicTimer(60, function() { // 1-minute loop
             
@@ -96,6 +96,7 @@ class Dashboard implements MessageComponentInterface
                 $this->sendToAll($alert_json);
             }
 
+            $this->showGroundMeasReminderSettings();
         });
 	}
 
@@ -142,6 +143,7 @@ class Dashboard implements MessageComponentInterface
 
 	    $this->writeToLog("New connection! ({$conn->resourceId})\n");
 		$this->writeToLog("Host: ({$this->host})\n");
+        $this->showGroundMeasReminderSettings();
     }
 
     public function onMessage(ConnectionInterface $from, $msg) {
@@ -521,6 +523,20 @@ class Dashboard implements MessageComponentInterface
         $host = $this->host;
         $result = file_get_contents($host . '/chart_export/deleteTemporaryChartFiles/' . $id);
         $this->writeToLog($result . "\n");
+    }
+
+    public function showGroundMeasReminderSettings() {
+        $date = date_create();
+        $ground_meas_hour = (int) date_format($date, 'H');
+        $ground_meas_minute = (int) date_format($date, 'i');
+        if ($ground_meas_hour == 5 || $ground_meas_hour == 9 || $ground_meas_hour == 13) {
+            if ($ground_meas_minute >= 20 && $ground_meas_minute < 29) {
+                $data = array( 'code' => 'showGndMeasMenu', 'action' => 'show');
+            } else {
+                $data = array( 'code' => 'showGndMeasMenu', 'action' => 'hide');
+            }
+            $this->sendToAll(json_encode($data));
+        }
     }
 
 }
